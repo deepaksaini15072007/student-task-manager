@@ -1,7 +1,6 @@
+## Live Demo
 
-
-
-https://deepaksaini15072007.github.io/student-task-manager/
+[Open Student Task Manager] [https://deepaksaini15072007.github.io/student-task-manager/]
 
 # Student Task Manager
 
