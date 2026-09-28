@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Task Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+
+    <header>
+        <h1>Student Task Manager</h1>
+        <p>Manage your assignments, projects and deadlines</p>
+    </header>
+
+    <main>
+
+        <!-- Dashboard -->
+        <section class="dashboard">
+
+    <div class="card">
+        <h3>Total Tasks</h3>
+        <p id="totalTasks">0</p>
+    </div>
+
+    <div class="card">
+        <h3>Completed</h3>
+        <p id="completedTasks">0</p>
+    </div>
+
+    <div class="card">
+        <h3>Pending</h3>
+        <p id="pendingTasks">0</p>
+    </div>
+
+    <div class="card">
+        <h3>Progress</h3>
+        <p id="progress">0%</p>
+    </div>
+
+</section>
+
+        <!-- Add Task -->
+       <section class="add-task">
+
+    <h2>Add New Task</h2>
+
+    <input type="text" id="taskName" placeholder="Task name">
+
+    <input type="date" id="taskDate">
+
+    <select id="taskPriority">
+        <option value="High">High Priority</option>
+        <option value="Medium">Medium Priority</option>
+        <option value="Low">Low Priority</option>
+    </select>
+
+    <button onclick="addTask()">Add Task</button>
+
+</section>
+        <!-- Tasks -->
+        <section class="tasks">
+
+    <h2>My Tasks</h2>
+    <div class="filters">
+
+    <input
+        type="text"
+        id="searchTask"
+        placeholder="Search tasks..."
+        oninput="filterTasks()"
+    >
+
+    <select id="filterPriority" onchange="filterTasks()">
+        <option value="All">All Tasks</option>
+        <option value="Pending">Pending</option>
+        <option value="Completed">Completed</option>
+        <option value="High">High Priority</option>
+        <option value="Medium">Medium Priority</option>
+        <option value="Low">Low Priority</option>
+    </select>
+
+</div>
+
+    <div id="taskList">
+
+    </div>
+
+</section>
+    </main>
+
+</body>
+</html>
