@@ -1,4 +1,16 @@
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+javascript
+// LOAD TASKS FROM LOCAL STORAGE
+let tasks = [];
+
+try {
+    const savedTasks = JSON.parse(
+        localStorage.getItem("tasks") || "[]"
+    );
+
+    tasks = Array.isArray(savedTasks) ? savedTasks : [];
+} catch (error) {
+    tasks = [];
+}
 
 displayTasks();
 updateDashboard();
@@ -6,17 +18,20 @@ updateDashboard();
 
 // ADD TASK
 function addTask() {
+    const taskNameInput = document.getElementById("taskName");
+    const taskDateInput = document.getElementById("taskDate");
+    const priorityInput = document.getElementById("taskPriority");
 
-    let taskName = document.getElementById("taskName").value;
-    let taskDate = document.getElementById("taskDate").value;
-    let priority = document.getElementById("taskPriority").value;
+    const taskName = taskNameInput.value.trim();
+    const taskDate = taskDateInput.value;
+    const priority = priorityInput.value;
 
-    if (taskName === "" || taskDate === "") {
-        alert("Please enter task name and deadline");
+    if (!taskName || !taskDate) {
+        alert("Please enter task name and deadline.");
         return;
     }
 
-    let task = {
+    const task = {
         id: Date.now(),
         name: taskName,
         date: taskDate,
@@ -28,210 +43,211 @@ function addTask() {
 
     saveTasks();
 
-    document.getElementById("taskName").value = "";
-    document.getElementById("taskDate").value = "";
+    taskNameInput.value = "";
+    taskDateInput.value = "";
 
-    displayTasks();
-    updateDashboard();
+    refreshApp();
 }
 
 
 // DISPLAY TASKS
 function displayTasks(list = tasks) {
-
-    let taskList = document.getElementById("taskList");
+    const taskList = document.getElementById("taskList");
 
     taskList.innerHTML = "";
 
     if (list.length === 0) {
+        const message = document.createElement("p");
+        message.className = "no-task";
+        message.textContent = "No tasks found.";
 
-        taskList.innerHTML = `
-            <p class="no-task">No tasks found.</p>
-        `;
-
+        taskList.appendChild(message);
         return;
     }
 
     list.forEach(function(task) {
-
-        let div = document.createElement("div");
-
+        const div = document.createElement("div");
         div.className = "task";
 
         if (task.completed) {
             div.classList.add("completed");
         }
 
-        let deadlineStatus = getDeadlineStatus(task);
+        // Task information
+        const info = document.createElement("div");
 
-        div.innerHTML = `
-            <div>
-                <h3>${task.name}</h3>
+        const heading = document.createElement("h3");
+        heading.textContent = task.name;
 
-                <p>
-                    Deadline: ${formatDate(task.date)}
-                </p>
+        const date = document.createElement("p");
+        date.textContent = "Deadline: " + formatDate(task.date);
 
-                <span class="deadline ${deadlineStatus.className}">
-                    ${deadlineStatus.text}
-                </span>
-            </div>
+        const deadline = getDeadlineStatus(task);
+        const deadlineLabel = document.createElement("span");
 
-            <div>
+        deadlineLabel.className =
+            "deadline " + deadline.className;
 
-                <span class="${
-                    task.completed
-                    ? "low"
-                    : task.priority.toLowerCase()
-                }">
-                    ${task.completed ? "Completed" : task.priority}
-                </span>
+        deadlineLabel.textContent = deadline.text;
 
-                <button onclick="completeTask(${task.id})">
-                    ${task.completed ? "Undo" : "Complete"}
-                </button>
+        info.appendChild(heading);
+        info.appendChild(date);
+        info.appendChild(deadlineLabel);
 
-                <button onclick="deleteTask(${task.id})">
-                    Delete
-                </button>
+        // Task actions
+        const actions = document.createElement("div");
 
-            </div>
-        `;
+        const priorityLabel = document.createElement("span");
+
+        priorityLabel.className = task.completed
+            ? "low"
+            : task.priority.toLowerCase();
+
+        priorityLabel.textContent = task.completed
+            ? "Completed"
+            : task.priority;
+
+        const completeButton = document.createElement("button");
+
+        completeButton.textContent = task.completed
+            ? "Undo"
+            : "Complete";
+
+        completeButton.addEventListener("click", function() {
+            completeTask(task.id);
+        });
+
+        const deleteButton = document.createElement("button");
+
+        deleteButton.textContent = "Delete";
+
+        deleteButton.addEventListener("click", function() {
+            deleteTask(task.id);
+        });
+
+        actions.appendChild(priorityLabel);
+        actions.appendChild(completeButton);
+        actions.appendChild(deleteButton);
+
+        div.appendChild(info);
+        div.appendChild(actions);
 
         taskList.appendChild(div);
     });
 }
 
 
-// CHECK DEADLINE
+// CHECK DEADLINE STATUS
 function getDeadlineStatus(task) {
-
     if (task.completed) {
-
         return {
             text: "Completed",
             className: "deadline-completed"
         };
     }
 
-    let today = new Date();
+    const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    let deadline = new Date(task.date + "T00:00:00");
+    const deadline = new Date(task.date + "T00:00:00");
     deadline.setHours(0, 0, 0, 0);
 
-    let difference =
-        Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+    const difference = Math.round(
+        (deadline - today) / (1000 * 60 * 60 * 24)
+    );
 
     if (difference < 0) {
-
         return {
             text: "OVERDUE",
             className: "deadline-overdue"
         };
+    }
 
-    } else if (difference === 0) {
-
+    if (difference === 0) {
         return {
             text: "DUE TODAY",
             className: "deadline-today"
         };
+    }
 
-    } else if (difference === 1) {
-
+    if (difference === 1) {
         return {
             text: "Due Tomorrow",
             className: "deadline-tomorrow"
         };
-
-    } else {
-
-        return {
-            text: "Upcoming",
-            className: "deadline-upcoming"
-        };
     }
+
+    return {
+        text: "Upcoming",
+        className: "deadline-upcoming"
+    };
 }
 
 
 // FORMAT DATE
 function formatDate(date) {
-
-    let parts = date.split("-");
+    const parts = date.split("-");
 
     return `${parts[2]}-${parts[1]}-${parts[0]}`;
 }
 
 
-// COMPLETE / UNDO
+// COMPLETE / UNDO TASK
 function completeTask(id) {
-
     tasks.forEach(function(task) {
-
         if (task.id === id) {
             task.completed = !task.completed;
         }
-
     });
 
     saveTasks();
-
-    displayTasks();
-    updateDashboard();
+    refreshApp();
 }
 
 
-// DELETE
+// DELETE TASK
 function deleteTask(id) {
-
     tasks = tasks.filter(function(task) {
         return task.id !== id;
     });
 
     saveTasks();
-
-    displayTasks();
-    updateDashboard();
+    refreshApp();
 }
 
 
-// SEARCH + FILTER
+// SEARCH AND FILTER TASKS
 function filterTasks() {
+    const searchText = document
+        .getElementById("searchTask")
+        .value.toLowerCase().trim();
 
-    let searchText =
-        document.getElementById("searchTask").value.toLowerCase();
+    const filter = document
+        .getElementById("filterPriority")
+        .value;
 
-    let filter =
-        document.getElementById("filterPriority").value;
-
-    let filteredTasks = tasks.filter(function(task) {
-
-        let matchesSearch =
-            task.name.toLowerCase().includes(searchText);
+    const filteredTasks = tasks.filter(function(task) {
+        const matchesSearch = task.name
+            .toLowerCase()
+            .includes(searchText);
 
         let matchesFilter = true;
 
-        if (filter === "Pending") {
-            matchesFilter = !task.completed;
-        }
+        switch (filter) {
+            case "Pending":
+                matchesFilter = !task.completed;
+                break;
 
-        else if (filter === "Completed") {
-            matchesFilter = task.completed;
-        }
+            case "Completed":
+                matchesFilter = task.completed;
+                break;
 
-        else if (filter === "High") {
-            matchesFilter =
-                task.priority === "High" && !task.completed;
-        }
-
-        else if (filter === "Medium") {
-            matchesFilter =
-                task.priority === "Medium" && !task.completed;
-        }
-
-        else if (filter === "Low") {
-            matchesFilter =
-                task.priority === "Low" && !task.completed;
+            case "High":
+            case "Medium":
+            case "Low":
+                matchesFilter =
+                    task.priority === filter && !task.completed;
+                break;
         }
 
         return matchesSearch && matchesFilter;
@@ -241,31 +257,47 @@ function filterTasks() {
 }
 
 
-// DASHBOARD
-function updateDashboard() {
-
-    let total = tasks.length;
-
-    let completed = tasks.filter(function(task) {
-        return task.completed;
-    }).length;
-
-    let pending = total - completed;
-
-    let progress = total === 0
-        ? 0
-        : Math.round((completed / total) * 100);
-
-    document.getElementById("totalTasks").innerText = total;
-    document.getElementById("completedTasks").innerText = completed;
-    document.getElementById("pendingTasks").innerText = pending;
-    document.getElementById("progress").innerText = progress + "%";
+// REFRESH TASKS AND DASHBOARD
+function refreshApp() {
+    filterTasks();
+    updateDashboard();
 }
 
 
-// SAVE TASKS
-function saveTasks() {
+// UPDATE DASHBOARD
+function updateDashboard() {
 
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+    const total = tasks.length;
 
+    const completed = tasks.filter(function(task) {
+        return task.completed;
+    }).length;
+
+    const pending = total - completed;
+
+    const progress = total === 0
+        ? 0
+        : Math.round((completed / total) * 100);
+
+    document.getElementById("totalTasks").textContent = total;
+
+    document.getElementById("completedTasks").textContent =
+        completed;
+
+    document.getElementById("pendingTasks").textContent =
+        pending;
+
+    document.getElementById("progress").textContent =
+        progress + "%";
+
+    const ring = document.getElementById("progressRing");
+
+if (ring) {
+    ring.style.setProperty("--progress", progress + "%");
+
+    ring.setAttribute(
+        "aria-label",
+        progress + "% tasks completed"
+    );
+}
 }
