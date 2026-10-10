@@ -1,4 +1,4 @@
-javascript
+
 // LOAD TASKS FROM LOCAL STORAGE
 let tasks = [];
 
@@ -14,7 +14,6 @@ try {
 
 displayTasks();
 updateDashboard();
-
 
 // ADD TASK
 function addTask() {
@@ -300,4 +299,8 @@ if (ring) {
         progress + "% tasks completed"
     );
 }
+}
+// SAVE TASKS
+function saveTasks() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
 }
